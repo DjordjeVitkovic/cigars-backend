@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+
+  auth:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - APP_JVM_ARGS_DEBUG=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8088
+    ports:
+      - "8080:8080"
+      - "8088:8088"
+    depends_on:
+      - postgres
+      - amqp-broker
+
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=auth
+      - POSTGRES_USER=cigars
+      - POSTGRES_PASSWORD=cigars
+    ports:
+      - 5432:5432
+    volumes:
+      - ./dev/postgresql:/var/lib/postgresql/data
+      - ./dev/bootstrap/db/postgres:/docker-entrypoint-initdb.d
+  amqp-broker:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
